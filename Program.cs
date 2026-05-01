@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using System.Diagnostics;
 
 namespace SFill;
 
@@ -9,6 +10,7 @@ class Program
 
     static int Main(string[] args)
     {
+        var stopwatch = Stopwatch.StartNew();
         var filePath = Path.Combine(Directory.GetCurrentDirectory(), FillFileName);
 
         Console.WriteLine($"sfill - Filling free space with random data");
@@ -21,6 +23,7 @@ class Program
             e.Cancel = true;
             Console.WriteLine("\nAborting...");
             CleanupFile(filePath);
+            PrintElapsedTime(stopwatch.Elapsed);
             Environment.Exit(1);
         };
 
@@ -29,12 +32,14 @@ class Program
             FillDrive(filePath);
             CleanupFile(filePath);
             Console.WriteLine("\nDrive filled successfully. Temporary file removed.");
+            PrintElapsedTime(stopwatch.Elapsed);
             return 0;
         }
         catch (Exception ex)
         {
             Console.Error.WriteLine($"\nError: {ex.Message}");
             CleanupFile(filePath);
+            PrintElapsedTime(stopwatch.Elapsed);
             return 1;
         }
     }
@@ -110,5 +115,10 @@ class Program
         }
 
         return $"{size:F2} {suffixes[suffixIndex]}";
+    }
+
+    private static void PrintElapsedTime(TimeSpan elapsed)
+    {
+        Console.WriteLine($"Elapsed time: {elapsed:hh\\:mm\\:ss}");
     }
 }
