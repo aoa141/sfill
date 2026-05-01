@@ -63,7 +63,7 @@ class Program
 
                 if (totalWritten % (100 * BufferSize) == 0)
                 {
-                    Console.Write($"\rWritten: {FormatBytes(totalWritten)}");
+                    Console.Write($"\rWritten: {FormatBytes(totalWritten)}.           ");
                 }
             }
             catch (IOException ex) when (IsDiskFullException(ex))
