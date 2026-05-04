@@ -13,6 +13,7 @@ class Program
         var stopwatch = Stopwatch.StartNew();
         var filePath = Path.Combine(Directory.GetCurrentDirectory(), FillFileName);
 
+        PrintTimestamp("Process started");
         Console.WriteLine($"sfill - Filling free space with random data");
         Console.WriteLine($"Target: {filePath}");
         Console.WriteLine("Press Ctrl+C to abort");
@@ -24,6 +25,7 @@ class Program
             Console.WriteLine("\nAborting...");
             CleanupFile(filePath);
             PrintElapsedTime(stopwatch.Elapsed);
+            PrintTimestamp("Process finished");
             Environment.Exit(1);
         };
 
@@ -33,6 +35,7 @@ class Program
             CleanupFile(filePath);
             Console.WriteLine("\nDrive filled successfully. Temporary file removed.");
             PrintElapsedTime(stopwatch.Elapsed);
+            PrintTimestamp("Process finished");
             return 0;
         }
         catch (Exception ex)
@@ -40,6 +43,7 @@ class Program
             Console.Error.WriteLine($"\nError: {ex.Message}");
             CleanupFile(filePath);
             PrintElapsedTime(stopwatch.Elapsed);
+            PrintTimestamp("Process finished");
             return 1;
         }
     }
@@ -120,5 +124,10 @@ class Program
     private static void PrintElapsedTime(TimeSpan elapsed)
     {
         Console.WriteLine($"Elapsed time: {elapsed:hh\\:mm\\:ss}");
+    }
+
+    private static void PrintTimestamp(string message)
+    {
+        Console.WriteLine($"{message}: {DateTime.Now:yyyy-MM-dd HH:mm:ss zzz}");
     }
 }
