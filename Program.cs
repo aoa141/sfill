@@ -13,9 +13,12 @@ class Program
         var stopwatch = Stopwatch.StartNew();
         var filePath = Path.Combine(Directory.GetCurrentDirectory(), FillFileName);
 
+        var freeSpace = new DriveInfo(Path.GetPathRoot(filePath) ?? filePath).AvailableFreeSpace;
+
         PrintTimestamp("Process started");
         Console.WriteLine($"sfill - Filling free space with random data");
         Console.WriteLine($"Target: {filePath}");
+        Console.WriteLine($"Free space: {FormatBytes(freeSpace)}");
         Console.WriteLine("Press Ctrl+C to abort");
         Console.WriteLine();
 
@@ -31,7 +34,7 @@ class Program
 
         try
         {
-            FillDrive(filePath);
+            FillDrive(filePath, freeSpace, stopwatch);
             CleanupFile(filePath);
             Console.WriteLine("\nDrive filled successfully. Temporary file removed.");
             PrintElapsedTime(stopwatch.Elapsed);
@@ -48,7 +51,7 @@ class Program
         }
     }
 
-    private static void FillDrive(string filePath)
+    private static void FillDrive(string filePath, long freeSpace, Stopwatch stopwatch)
     {
         var buffer = new byte[BufferSize];
         long totalWritten = 0;
@@ -72,7 +75,7 @@ class Program
 
                 if (totalWritten % (100 * BufferSize) == 0)
                 {
-                    Console.Write($"\rWritten: {FormatBytes(totalWritten)}.           ");
+                    Console.Write($"\rWritten: {FormatBytes(totalWritten)} - ETA: {FormatEta(totalWritten, freeSpace, stopwatch.Elapsed)}.           ");
                 }
             }
             catch (IOException ex) when (IsDiskFullException(ex))
@@ -119,6 +122,20 @@ class Program
         }
 
         return $"{size:F2} {suffixes[suffixIndex]}";
+    }
+
+    private static string FormatEta(long written, long freeSpace, TimeSpan elapsed)
+    {
+        var remaining = freeSpace - written;
+        if (remaining <= 0 || elapsed.TotalSeconds <= 0 || written <= 0)
+        {
+            return "calculating...";
+        }
+
+        var bytesPerSecond = written / elapsed.TotalSeconds;
+        var etaMinutes = remaining / bytesPerSecond / 60.0;
+
+        return $"{etaMinutes:F1} min remaining";
     }
 
     private static void PrintElapsedTime(TimeSpan elapsed)
