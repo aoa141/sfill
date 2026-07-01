@@ -11,7 +11,15 @@ class Program
     static int Main(string[] args)
     {
         var stopwatch = Stopwatch.StartNew();
-        var filePath = Path.Combine(Directory.GetCurrentDirectory(), FillFileName);
+
+        var workingDirectory = args.Length > 0 ? args[0] : Directory.GetCurrentDirectory();
+        if (!Directory.Exists(workingDirectory))
+        {
+            Console.Error.WriteLine($"Error: Directory does not exist: {workingDirectory}");
+            return 1;
+        }
+
+        var filePath = Path.Combine(workingDirectory, FillFileName);
 
         var freeSpace = new DriveInfo(Path.GetPathRoot(filePath) ?? filePath).AvailableFreeSpace;
 
