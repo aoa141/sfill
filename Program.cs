@@ -8,6 +8,8 @@ class Program
     private const int BufferSize = 1024 * 1024; // 1 MB buffer
     private const string FillFileName = "sfill.tmp";
 
+    private static volatile bool _cancelRequested;
+
     static int Main(string[] args)
     {
         var stopwatch = Stopwatch.StartNew();
@@ -33,17 +35,23 @@ class Program
         Console.CancelKeyPress += (_, e) =>
         {
             e.Cancel = true;
+            _cancelRequested = true;
             Console.WriteLine("\nAborting...");
-            CleanupFile(filePath);
-            PrintElapsedTime(stopwatch.Elapsed);
-            PrintTimestamp("Process finished");
-            Environment.Exit(1);
         };
 
         try
         {
             FillDrive(filePath, freeSpace, stopwatch);
             CleanupFile(filePath);
+
+            if (_cancelRequested)
+            {
+                Console.WriteLine("\nAborted. Temporary file removed.");
+                PrintElapsedTime(stopwatch.Elapsed);
+                PrintTimestamp("Process finished");
+                return 1;
+            }
+
             Console.WriteLine("\nDrive filled successfully. Temporary file removed.");
             PrintElapsedTime(stopwatch.Elapsed);
             PrintTimestamp("Process finished");
@@ -72,7 +80,7 @@ class Program
             BufferSize,
             FileOptions.WriteThrough);
 
-        while (true)
+        while (!_cancelRequested)
         {
             RandomNumberGenerator.Fill(buffer);
 
